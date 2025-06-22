@@ -22,11 +22,13 @@ class ClientController
      */
     public function index()
     {
-        $clients = $this->clientModel->findAll();
+        $clientsRaw = $this->clientModel->findAll();
+        $clients = [];
 
-        // For each client, retrieve the number of linked contacts
-        foreach ($clients as &$client) {
+        // Add the number of linked clients to each client
+        foreach ($clientsRaw as $client) {
             $client['num_linked_contacts'] = $this->clientModel->countLinkedContacts($client['id']);
+            $clients[] = $client;
         }
 
         require_once APP_ROOT . '/app/Views/Includes/header.php';
@@ -52,19 +54,30 @@ class ClientController
      */
     public function store()
     {
-        if (empty($_POST['name'])) {
-            $_SESSION['error'] = "Client name is required.";
-            header('Location: /clients/create');
-            return;
-        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = [
+                'name' => trim($_POST['name'] ?? '')
+            ];
 
-        if ($this->clientModel->create($_POST)) {
-            header('Location: /clients');
-        } else {
-            $_SESSION['error'] = "Error while creating client.";
-            header('Location: /clients/create');
+            // Validate required fields
+            if (empty($data['name'])) {
+                $_SESSION['error'] = "Client name is required.";
+                header("Location: " . BASE_URL . "/clients/create");
+                exit;
+            }
+
+            if ($this->clientModel->create($data)) {
+                $_SESSION['success'] = "Client successfully created.";
+                header("Location: " . BASE_URL . "/clients");
+                exit;
+            } else {
+                $_SESSION['error'] = "Error while creating client.";
+                header("Location: " . BASE_URL . "/clients/create");
+                exit;
+            }
         }
     }
+
 
     /**
      * Show the form to edit an existing client.
@@ -76,6 +89,13 @@ class ClientController
             header("HTTP/1.0 404 Not Found");
             echo "Client not found.";
             return;
+        }
+
+        // Handle unlinking via GET (contact to be unlinked from client)
+        if (!empty($_GET['unlink_contact_id']) && is_numeric($_GET['unlink_contact_id'])) {
+            $this->clientModel->unlinkContact($id, $_GET['unlink_contact_id']);
+            header("Location: " . BASE_URL . "/clients/edit/" . $id);
+            exit;
         }
 
         $linkedContacts = $this->clientModel->getLinkedContacts($id);
@@ -93,7 +113,7 @@ class ClientController
     {
         if (empty($_POST['name'])) {
             $_SESSION['error'] = "Client name is required.";
-            header("Location: /clients/edit/{$id}");
+            header("Location: " . BASE_URL . "/clients/edit/{$id}");
             return;
         }
 
@@ -107,12 +127,16 @@ class ClientController
                 $this->clientModel->unlinkContact($id, $_POST['unlink_contact_id']);
             }
 
-            header('Location: /clients');
+            $_SESSION['success'] = "Client successfully updated.";
+            header("Location: " . BASE_URL . "/clients/edit/{$id}");
+            exit;
         } else {
             $_SESSION['error'] = "Error while updating client.";
-            header("Location: /clients/edit/{$id}");
+            header("Location: " . BASE_URL . "/clients/edit/{$id}");
+            exit;
         }
     }
+
 
     /**
      * Delete a client.
@@ -120,10 +144,10 @@ class ClientController
     public function delete($id)
     {
         if ($this->clientModel->delete($id)) {
-            header('Location: /clients');
+            header("Location: " . BASE_URL . "/clients");
         } else {
             $_SESSION['error'] = "Error while deleting client.";
-            header('Location: /clients');
+            header("Location: " . BASE_URL . "/clients");
         }
     }
 }

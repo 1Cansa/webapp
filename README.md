@@ -21,5 +21,5 @@ A simple PHP MVC application to manage clients and their linked contacts.
 ## Installation
 
 ## Clone the project
-   git clone https://github.com/1Cansa/webapp.git
-   cd webapp
+   - git clone https://github.com/1Cansa/webapp.git
+   - cd webapp

@@ -4,7 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 define('APP_ROOT', dirname(__DIR__));
-define('BASE_URL', rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/');
+define('BASE_URL', '/webapp/public');
 
 
 require_once APP_ROOT . '/config/database.php';
