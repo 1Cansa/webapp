@@ -6,7 +6,7 @@
 
 <h1><?php echo $contact ? 'Edit Contact' : 'Create New Contact'; ?></h1>
 
-<form action="<?php echo $contact ? BASE_URL . '/contacts/update/' . $contact['id'] : BASE_URL . '/contacts/store'; ?>" method="POST">
+<form action="<?= $contact ? '/Contacts/update/' . $contact['id'] : '/Contacts/store'; ?>" method="POST">
     <div class="tabs">
         <button type="button" class="tab-button active" onclick="openTab(event, 'generalTab')">General</button>
         <?php if ($contact): ?>

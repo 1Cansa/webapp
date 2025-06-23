@@ -4,15 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Clients/Contacts Management</title>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/css/style.css" />
+    <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
     <header>
         <nav>
             <ul>
-                <li><a href="<?php echo BASE_URL; ?>/">Home</a></li>
-                <li><a href="<?php echo BASE_URL; ?>/clients">Clients</a></li>
-                <li><a href="<?php echo BASE_URL; ?>/contacts">Contacts</a></li>
+                <li><a href="/">Home</a></li>
+                <li><a href="/clients">Clients</a></li>
+                <li><a href="/contacts">Contacts</a></li>
             </ul>
         </nav>
     </header>
