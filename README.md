@@ -14,11 +14,14 @@ A simple PHP MVC application to manage clients and their linked contacts.
 
 ## Requirements
 
-- PHP >= 7.4
+- PHP >= 8.3
 - MySQL or MariaDB
 - Apache with mod_rewrite enabled
 
 ## Installation
+- composer install
+- composer dump-autoload
+- php -S localhost:8080 -t public # start web server 
 
 ## Clone the project
    - git clone https://github.com/1Cansa/webapp.git

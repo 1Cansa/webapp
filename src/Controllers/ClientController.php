@@ -1,13 +1,14 @@
 <?php
-// app/Controllers/ClientController.php
 
 namespace App\Controllers;
 
 use App\Models\Client;
 use App\Models\Contact; // For linking contacts to clients
+use App\Core\Router;
 
 class ClientController
 {
+    public Router $router;
     protected $clientModel;
     protected $contactModel;
 
@@ -31,9 +32,9 @@ class ClientController
             $clients[] = $client;
         }
 
-        require_once APP_ROOT . '/app/Views/Includes/header.php';
-        require_once APP_ROOT . '/app/Views/Client/list.php';
-        require_once APP_ROOT . '/app/Views/Includes/footer.php';
+        require_once ROOT . '/src/Views/Includes/header.php';
+        require_once ROOT . '/src/Views/Client/list.php';
+        require_once ROOT . '/src/Views/Includes/footer.php';
     }
 
     /**
@@ -44,9 +45,9 @@ class ClientController
         $client = null; // No existing client for creation
         $allContacts = $this->contactModel->findAll(); // For contact linking
 
-        require_once APP_ROOT . '/app/Views/Includes/header.php';
-        require_once APP_ROOT . '/app/Views/Client/form.php';
-        require_once APP_ROOT . '/app/Views/Includes/footer.php';
+        require_once ROOT . '/src/Views/Includes/header.php';
+        require_once ROOT . '/src/Views/Client/form.php';
+        require_once ROOT . '/src/Views/Includes/footer.php';
     }
 
     /**
@@ -62,18 +63,15 @@ class ClientController
             // Validate required fields
             if (empty($data['name'])) {
                 $_SESSION['error'] = "Client name is required.";
-                header("Location: " . BASE_URL . "/clients/create");
-                exit;
+                $this->router->redirect("client.create");
             }
 
             if ($this->clientModel->create($data)) {
                 $_SESSION['success'] = "Client successfully created.";
-                header("Location: " . BASE_URL . "/clients");
-                exit;
+                $this->router->redirect("client.index");
             } else {
                 $_SESSION['error'] = "Error while creating client.";
-                header("Location: " . BASE_URL . "/clients/create");
-                exit;
+                $this->router->redirect("client.create");
             }
         }
     }
@@ -94,16 +92,16 @@ class ClientController
         // Handle unlinking via GET (contact to be unlinked from client)
         if (!empty($_GET['unlink_contact_id']) && is_numeric($_GET['unlink_contact_id'])) {
             $this->clientModel->unlinkContact($id, $_GET['unlink_contact_id']);
-            header("Location: " . BASE_URL . "/clients/edit/" . $id);
+            $this->router->redirect("client.edit", ['id' => $id]);
             exit;
         }
 
         $linkedContacts = $this->clientModel->getLinkedContacts($id);
         $allContacts = $this->contactModel->findAll();
 
-        require_once APP_ROOT . '/app/Views/Includes/header.php';
-        require_once APP_ROOT . '/app/Views/Client/form.php';
-        require_once APP_ROOT . '/app/Views/Includes/footer.php';
+        require_once ROOT . '/src/Views/Includes/header.php';
+        require_once ROOT . '/src/Views/Client/form.php';
+        require_once ROOT . '/src/Views/Includes/footer.php';
     }
 
     /**
@@ -113,7 +111,7 @@ class ClientController
     {
         if (empty($_POST['name'])) {
             $_SESSION['error'] = "Client name is required.";
-            header("Location: " . BASE_URL . "/clients/edit/{$id}");
+            $this->router->redirect("client.edit", ['id' => $id]);
             return;
         }
 
@@ -128,11 +126,11 @@ class ClientController
             }
 
             $_SESSION['success'] = "Client successfully updated.";
-            header("Location: " . BASE_URL . "/clients/edit/{$id}");
+            $this->router->redirect("client.index", ['id' => $id]);
             exit;
         } else {
             $_SESSION['error'] = "Error while updating client.";
-            header("Location: " . BASE_URL . "/clients/edit/{$id}");
+            $this->router->redirect("client.index", ['id' => $id]);
             exit;
         }
     }
@@ -144,10 +142,12 @@ class ClientController
     public function delete($id)
     {
         if ($this->clientModel->delete($id)) {
-            header("Location: " . BASE_URL . "/clients");
+            $_SESSION['success'] = "Client successfully deleted.";
         } else {
             $_SESSION['error'] = "Error while deleting client.";
-            header("Location: " . BASE_URL . "/clients");
         }
+
+        $this->router->redirect("client.index");
+        exit;
     }
 }

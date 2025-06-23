@@ -3,9 +3,11 @@ namespace App\Controllers;
 
 use App\Models\Contact;
 use App\Models\Client;
+use App\Core\Router;
 
 class ContactController
 {
+    public Router $router;
     protected $contactModel;
     protected $clientModel;
 
@@ -29,9 +31,9 @@ class ContactController
             $contacts[] = $contact;
         }
 
-        require_once APP_ROOT . '/app/Views/Includes/header.php';
-        require APP_ROOT . '/app/Views/Contact/list.php';
-        require_once APP_ROOT . '/app/Views/Includes/footer.php';
+        require_once ROOT . '/src/Views/Includes/header.php';
+        require ROOT . '/src/Views/Contact/list.php';
+        require_once ROOT . '/src/Views/Includes/footer.php';
     }
 
     /**
@@ -43,9 +45,9 @@ class ContactController
         $linkedClients = [];
         $allClients = $this->clientModel->findAll();
 
-        require_once APP_ROOT . '/app/Views/Includes/header.php';
-        require APP_ROOT . '/app/Views/Contact/form.php';
-        require_once APP_ROOT . '/app/Views/Includes/footer.php';
+        require_once ROOT . '/src/Views/Includes/header.php';
+        require ROOT . '/src/Views/Contact/form.php';
+        require_once ROOT . '/src/Views/Includes/footer.php';
     }
 
     /**
@@ -63,17 +65,17 @@ class ContactController
             // Validate required fields
             if (empty($data['first_name']) || empty($data['last_name']) || empty($data['email'])) {
                 $_SESSION['error'] = "All fields are required.";
-                header("Location: " . BASE_URL . "/contacts/create");
+                $this->router->redirect("contact.create");
                 exit;
             }
 
             if ($this->contactModel->create($data)) {
                 $_SESSION['success'] = "Contact successfully created.";
-                header("Location: " . BASE_URL . "/contacts");
+                $this->router->redirect("contact.index");
                 exit;
             } else {
                 $_SESSION['error'] = "Error while creating contact.";
-                header("Location: " . BASE_URL . "/contacts/create");
+                $this->router->redirect("contact.create");
                 exit;
             }
         }
@@ -88,7 +90,7 @@ class ContactController
         $contact = $this->contactModel->find($id);
         if (!$contact) {
             $_SESSION['error'] = "Contact not found.";
-            header("Location: " . BASE_URL . "/contacts");
+            $this->router->redirect("contact.index");
             exit;
         }
 
@@ -99,7 +101,7 @@ class ContactController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!empty($_POST['link_client_id'])) {
                 $this->contactModel->linkClient($id, $_POST['link_client_id']);
-                header("Location: " . BASE_URL . "/contacts/edit/" . $id);
+                $this->router->redirect("contact.index", ['id' => $id]);
                 exit;
             }
         }
@@ -107,13 +109,14 @@ class ContactController
         // Handle unlinking via GET
         if (!empty($_GET['unlink_client_id'])) {
             $this->contactModel->unlinkClient($id, $_GET['unlink_client_id']);
-            header("Location: " . BASE_URL . "/contacts/edit/" . $id);
+            $this->router->redirect("contact.index", ['id' => $id]);
             exit;
         }
+        
 
-        require_once APP_ROOT . '/app/Views/Includes/header.php';
-        require APP_ROOT . '/app/Views/Contact/form.php';
-        require_once APP_ROOT . '/app/Views/Includes/footer.php';
+        require_once ROOT . '/src/Views/Includes/header.php';
+        require ROOT . '/src/Views/Contact/form.php';
+        require_once ROOT . '/src/Views/Includes/footer.php';
     }
 
     /**
@@ -121,31 +124,38 @@ class ContactController
      */
     public function update($id)
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = [
-                'first_name' => trim($_POST['first_name'] ?? ''),
-                'last_name'  => trim($_POST['last_name'] ?? ''),
-                'email'      => trim($_POST['email'] ?? '')
-            ];
+        if (empty($_POST['first_name']) || empty($_POST['last_name']) || empty($_POST['email'])) {
+            $_SESSION['error'] = "All fields are required.";
+            $this->router->redirect("contact.edit", ['id' => $id]);
+            return;
+        }
 
-            // Validate required fields
-            if (empty($data['first_name']) || empty($data['last_name']) || empty($data['email'])) {
-                $_SESSION['error'] = "All fields are required.";
-                header("Location: " . BASE_URL . "/contacts/edit/" . $id);
-                exit;
+        $data = [
+            'first_name' => trim($_POST['first_name']),
+            'last_name'  => trim($_POST['last_name']),
+            'email'      => trim($_POST['email'])
+        ];
+
+        if ($this->contactModel->update($id, $data)) {
+            // Manage client linking/unlinking
+            if (isset($_POST['link_client_id']) && is_numeric($_POST['link_client_id'])) {
+                $this->contactModel->linkClient($id, $_POST['link_client_id']);
             }
 
-            if ($this->contactModel->update($id, $data)) {
-                $_SESSION['success'] = "Contact successfully updated.";
-                header("Location: " . BASE_URL . "/contacts");
-                exit;
-            } else {
-                $_SESSION['error'] = "Error while updating contact.";
-                header("Location: " . BASE_URL . "/contacts/edit/" . $id);
-                exit;
+            if (isset($_POST['unlink_client_id']) && is_numeric($_POST['unlink_client_id'])) {
+                $this->contactModel->unlinkClient($id, $_POST['unlink_client_id']);
             }
+
+            $_SESSION['success'] = "Contact successfully updated.";
+            $this->router->redirect("contact.index", ['id' => $id]);
+            exit;
+        } else {
+            $_SESSION['error'] = "Error while updating contact.";
+            $this->router->redirect("contact.index", ['id' => $id]);
+            exit;
         }
     }
+
 
     /**
      * Delete a contact.
@@ -158,7 +168,7 @@ class ContactController
             $_SESSION['error'] = "Error while deleting contact.";
         }
 
-        header("Location: " . BASE_URL . "/contacts");
+        $this->router->redirect("contact.index");
         exit;
     }
 }

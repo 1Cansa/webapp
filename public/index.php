@@ -1,51 +1,44 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
-define('APP_ROOT', dirname(__DIR__));
-define('BASE_URL', '/webapp/public');
-
-
-require_once APP_ROOT . '/config/database.php';
-
-spl_autoload_register(function ($class) {
-    $prefix = 'App\\';
-    $base_dir = APP_ROOT . '/app/';
-
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) {
-        return;
-    }
-
-    $relative_class = substr($class, $len);
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
-    
-    if (file_exists($file)) {
-        require $file;
-    }
-});
+require '../config/constant.php';
+require ROOT . '/config/database.php';
+require ROOT . '/vendor/autoload.php';
 
 use App\Core\Router;
+use App\Core\Route;
+use App\Controllers\HomeController;
+use App\Controllers\ClientController;
+use App\Controllers\ContactController;
 
 session_start();
 
 $router = new Router();
 
-$router->get('/', 'HomeController@index');
+$router->get('/', [HomeController::class, 'index'], 'index');
 
-$router->get('/clients', 'ClientController@index');
-$router->get('/clients/create', 'ClientController@create');
-$router->post('/clients/store', 'ClientController@store');
-$router->get('/clients/edit/{id}', 'ClientController@edit');
-$router->post('/clients/update/{id}', 'ClientController@update');
-$router->get('/clients/delete/{id}', 'ClientController@delete');
+$router->get('/clients', [ClientController::class, 'index'], 'client.index');
+$router->get('/clients/create', [ClientController::class, 'create'], 'client.create');
+$router->post('/clients/store', [ClientController::class, 'store'], 'client.store');
+$router->get('/clients/edit/:id', [ClientController::class, 'edit'], 'client.edit');
+$router->post('/clients/update/:id', [ClientController::class, 'update'], 'client.update');
+$router->get('/clients/delete/:id', [ClientController::class, 'delete'], 'client.delete');
 
-$router->get('/contacts', 'ContactController@index');
-$router->get('/contacts/create', 'ContactController@create');
-$router->post('/contacts/store', 'ContactController@store');
-$router->get('/contacts/edit/{id}', 'ContactController@edit');
-$router->post('/contacts/update/{id}', 'ContactController@update');
-$router->get('/contacts/delete/{id}', 'ContactController@delete');
+$router->get('/contacts', [ContactController::class, 'index'], 'contact.index');
+$router->get('/contacts/create', [ContactController::class, 'create'], 'contact.create');
+$router->post('/contacts/store', [ContactController::class, 'store'], 'contact.store');
+$router->get('/contacts/edit/:id', [ContactController::class, 'edit'], 'contact.edit');
+$router->post('/contacts/update/:id', [ContactController::class, 'update'], 'contact.update');
+$router->get('/contacts/delete/:id', [ContactController::class, 'delete'], 'contact.delete');
 
-$router->dispatch();
+$route = $router->run();
+if ($route !== null) {
+    [$controller, $method] = $route->getController();
+
+    $instance = new $controller();
+    $instance->router = $router;
+
+    call_user_func_array([$instance, $method], $route->getMatches());
+} else {
+    header("HTTP/1.0 404 Not Found");
+    exit;
+}
