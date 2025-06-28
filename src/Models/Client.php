@@ -41,31 +41,44 @@ class Client extends BaseModel
     private function generateClientCode(string $name): string
     {
         $name = strtoupper(trim($name));
+        
+        $replacements = [
+            '@' => 'A',
+            '&' => 'E',
+            '#' => 'H',
+            '%' => 'P',
+            '$' => 'S',
+            '€' => 'E',
+            '!' => 'I',
+            '?' => 'Q',
+            '*' => 'X',
+            '+' => 'T',
+        ];
+        $name = strtr($name, $replacements);
+
+        $name = preg_replace('/[^A-Z\s]/', '', $name);
+
         $words = preg_split('/\s+/', $name);
         $baseCode = '';
 
-        // Generate the 3-letter prefix based on name structure
         if (count($words) === 1) {
             $word = $words[0];
             $baseCode = strlen($word) >= 3
                 ? substr($word, 0, 3)
-                : str_pad($word, 3, 'A'); // Pad short names (e.g., "IT" → "ITA")
+                : str_pad($word, 3, 'A');
         } elseif (count($words) === 2) {
-            $baseCode = substr($words[0], 0, 2) . substr($words[1], 0, 1); // e.g., "Banque Centrale" → "BAC"
+            $baseCode = substr($words[0], 0, 2) . substr($words[1], 0, 1);
         } else {
-            // Take first letters of the first 3 words (e.g., "First National Bank" → "FNB")
             $baseCode =
                 substr($words[0], 0, 1) .
                 substr($words[1], 0, 1) .
                 substr($words[2], 0, 1);
         }
 
-        // Retrieve existing codes starting with the generated prefix
         $stmt = $this->db->prepare("SELECT client_code FROM {$this->table} WHERE client_code LIKE :prefix");
         $stmt->execute(['prefix' => $baseCode . '%']);
         $existingCodes = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-        // Append an incremental 3-digit number to ensure uniqueness
         $nextNum = 1;
         do {
             $suffix = str_pad($nextNum, 3, '0', STR_PAD_LEFT);
@@ -75,6 +88,7 @@ class Client extends BaseModel
 
         return $clientCode;
     }
+
 
     /**
      * Create a new client with a generated unique client code.
@@ -204,4 +218,5 @@ class Client extends BaseModel
         $stmt = $this->db->prepare("DELETE FROM client_contacts WHERE client_id = :client_id AND contact_id = :contact_id");
         return $stmt->execute(['client_id' => $clientId, 'contact_id' => $contactId]);
     }
+
 }

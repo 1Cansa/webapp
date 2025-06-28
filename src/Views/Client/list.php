@@ -25,8 +25,10 @@
                     <td style="text-align:center;"><?php echo htmlspecialchars($client['num_linked_contacts']); ?></td>
                     <td>
                         <a href="<?= '/clients/edit/' . $client['id']; ?>">Edit</a> |
-                        <a href="<?= '/clients/delete/' . $client['id']; ?>"
-                           onclick="return confirm('Are you sure you want to delete this client and all its links?');">Delete</a>
+                        <a href="/clients/delete/<?= $client['id']; ?>" 
+                            class="confirm-link" 
+                            data-confirm="Are you sure you want to delete this client? This action cannot be undone.">Delete</a>
+
                     </td>
                 </tr>
             <?php endforeach; ?>

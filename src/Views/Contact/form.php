@@ -51,8 +51,9 @@
                             <td><?php echo htmlspecialchars($client['name']); ?></td>
                             <td><?php echo htmlspecialchars($client['client_code']); ?></td>
                             <td>
-                                <a href="?unlink_client_id=<?php echo $client['id']; ?>"
-                                   onclick="return confirm('Are you sure you want to unlink this client?');">Unlink</a>
+                                <a href="?unlink_client_id=<?= $client['id']; ?>" 
+                                    class="confirm-link" 
+                                    data-confirm="Are you sure you want to unlink this client?">Unlink</a>                      
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -64,6 +65,10 @@
         <?php if (empty($allClients)): ?>
             <p>No available clients to link. Please create clients first.</p>
         <?php else: ?>
+            <div>
+                <label for="client_code">Search by client code:</label>
+                <input type="text" id="client_code" name="client_code">
+            </div>
             <select name="link_client_id">
                 <option value="">Select a client</option>
                 <?php

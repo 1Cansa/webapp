@@ -123,38 +123,62 @@ class ContactController
      * Handle update form submission for a contact.
      */
     public function update($id)
-    {
-        if (empty($_POST['first_name']) || empty($_POST['last_name']) || empty($_POST['email'])) {
-            $_SESSION['error'] = "All fields are required.";
-            $this->router->redirect("contact.edit", ['id' => $id]);
-            return;
-        }
-
-        $data = [
-            'first_name' => trim($_POST['first_name']),
-            'last_name'  => trim($_POST['last_name']),
-            'email'      => trim($_POST['email'])
-        ];
-
-        if ($this->contactModel->update($id, $data)) {
-            // Manage client linking/unlinking
-            if (isset($_POST['link_client_id']) && is_numeric($_POST['link_client_id'])) {
-                $this->contactModel->linkClient($id, $_POST['link_client_id']);
-            }
-
-            if (isset($_POST['unlink_client_id']) && is_numeric($_POST['unlink_client_id'])) {
-                $this->contactModel->unlinkClient($id, $_POST['unlink_client_id']);
-            }
-
-            $_SESSION['success'] = "Contact successfully updated.";
-            $this->router->redirect("contact.index", ['id' => $id]);
-            exit;
-        } else {
-            $_SESSION['error'] = "Error while updating contact.";
-            $this->router->redirect("contact.index", ['id' => $id]);
-            exit;
-        }
+{
+    if (empty($_POST['first_name']) || empty($_POST['last_name']) || empty($_POST['email'])) {
+        $_SESSION['error'] = "All fields are required.";
+        $this->router->redirect("contact.edit", ['id' => $id]);
+        return;
     }
+
+    $data = [
+        'first_name' => trim($_POST['first_name']),
+        'last_name'  => trim($_POST['last_name']),
+        'email'      => trim($_POST['email'])
+    ];
+
+    if ($this->contactModel->update($id, $data)) {
+        // Unlink if requested
+        if (isset($_POST['unlink_client_id']) && is_numeric($_POST['unlink_client_id'])) {
+            $this->contactModel->unlinkClient($id, $_POST['unlink_client_id']);
+        }
+        
+        $manualCode = trim($_POST['client_code'] ?? '');
+        $dropdownId = $_POST['link_client_id'] ?? '';
+
+        $clientIdToLink = null;
+
+        if (!empty($manualCode)) {
+            $client = $this->clientModel->findByCode($manualCode);
+            if ($client) {
+                $clientIdToLink = $client['id'];
+            } else {
+                $_SESSION['error'] = "No client found with this client code.";
+                $this->router->redirect("contact.edit", ['id' => $id]);
+                return;
+            }
+        } elseif (!empty($dropdownId) && is_numeric($dropdownId)) {
+            $clientIdToLink = $dropdownId;
+        }
+
+        if ($clientIdToLink) {
+            $linkedClientIds = array_column($this->contactModel->getLinkedClients($id), 'id');
+            if (in_array($clientIdToLink, $linkedClientIds)) {
+                $_SESSION['error'] = "This client is already linked to the contact.";
+                $this->router->redirect("contact.edit", ['id' => $id]);
+                return;
+            }
+
+            $this->contactModel->linkClient($id, $clientIdToLink);
+        }
+
+        $_SESSION['success'] = "Contact successfully updated.";
+        $this->router->redirect("contact.index", ['id' => $id]);
+    } else {
+        $_SESSION['error'] = "Error while updating contact.";
+        $this->router->redirect("contact.index", ['id' => $id]);
+    }
+}
+
 
 
     /**
