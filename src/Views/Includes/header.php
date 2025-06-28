@@ -17,6 +17,16 @@
         </nav>
     </header>
     <main>
+        <div id="customConfirmModal" class="modal">
+        <div class="modal-content">
+            <p id="confirmMessage">Are you sure you want to proceed?</p>
+            <div class="modal-buttons">
+            <button id="confirmYes" class="btn btn-danger">Yes</button>
+            <button id="confirmNo" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+        </div>
+
 <?php
 // Start session if not already started to handle flash messages
 if (session_status() === PHP_SESSION_NONE) {

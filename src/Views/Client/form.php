@@ -48,7 +48,9 @@
                             <td><?= htmlspecialchars($contact['email']); ?></td>
                             <td>
                                 <a href="?unlink_contact_id=<?= $contact['id']; ?>"
-                                   onclick="return confirm('Are you sure you want to unlink this contact?');">Unlink</a>
+                                    class="confirm-link"
+                                    data-confirm="Do you really want to unlink this contact?">Unlink</a>
+
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -60,6 +62,10 @@
         <?php if (empty($allContacts)): ?>
             <p>No available contacts to link. Please create contacts first.</p>
         <?php else: ?>
+            <div>
+                <label for="email">Research by email:</label>
+                <input type="email" id="email" name="contact_id">
+            </div>
             <select name="link_contact_id">
                 <option value="">Select a contact</option>
                 <?php

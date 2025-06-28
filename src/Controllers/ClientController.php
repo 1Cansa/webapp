@@ -115,26 +115,59 @@ class ClientController
             return;
         }
 
+        $email = trim($_POST['contact_id'] ?? '');
+        $dropdownId = $_POST['link_contact_id'] ?? '';
+
+        if (!empty($email)) {
+            $contact = $this->contactModel->findByEmail($email);
+            if ($contact) {
+                $alreadyLinked = false;
+                foreach ($this->clientModel->getLinkedContacts($id) as $linked) {
+                    if ($linked['id'] == $contact['id']) {
+                        $alreadyLinked = true;
+                        break;
+                    }
+                }
+
+                if ($alreadyLinked) {
+                    $_SESSION['error'] = "This contact is already linked to the client.";
+                    $this->router->redirect("client.edit", ['id' => $id]);
+                    return;
+                }
+
+                $this->clientModel->linkContact($id, $contact['id']);
+            } else {
+                $_SESSION['error'] = "No contact found with this email.";
+                $this->router->redirect("client.edit", ['id' => $id]);
+                return;
+            }
+        }
+
         if ($this->clientModel->update($id, $_POST)) {
-            // Manage contact linking/unlinking
-            if (isset($_POST['link_contact_id']) && is_numeric($_POST['link_contact_id'])) {
-                $this->clientModel->linkContact($id, $_POST['link_contact_id']);
+    
+            if (is_numeric($dropdownId)) {
+                $this->clientModel->linkContact($id, $dropdownId);
             }
 
-            if (isset($_POST['unlink_contact_id']) && is_numeric($_POST['unlink_contact_id'])) {
-                $this->clientModel->unlinkContact($id, $_POST['unlink_contact_id']);
+            if (!empty($email)) {
+                $contact = $this->contactModel->findByEmail($email);
+                if ($contact) {
+                    $this->clientModel->linkContact($id, $contact['id']);
+                } else {
+                    $_SESSION['error'] = "No contact found with this email.";
+                    $this->router->redirect("client.edit", ['id' => $id]);
+                    return;
+                }
             }
 
+            // Unlinking remains optional (handled in edit with GET)
             $_SESSION['success'] = "Client successfully updated.";
             $this->router->redirect("client.index", ['id' => $id]);
-            exit;
         } else {
             $_SESSION['error'] = "Error while updating client.";
             $this->router->redirect("client.index", ['id' => $id]);
-            exit;
         }
     }
-
 
     /**
      * Delete a client.

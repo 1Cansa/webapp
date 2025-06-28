@@ -129,4 +129,12 @@ class Contact extends BaseModel
         $stmt = $this->db->prepare("DELETE FROM client_contacts WHERE contact_id = :contact_id AND client_id = :client_id");
         return $stmt->execute(['contact_id' => $contactId, 'client_id' => $clientId]);
     }
+
+    public function findByEmail(string $email)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM contacts WHERE email = :email");
+        $stmt->execute(['email' => $email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
 }
