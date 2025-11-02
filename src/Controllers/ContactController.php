@@ -8,8 +8,8 @@ use App\Core\Router;
 class ContactController
 {
     public Router $router;
-    protected $contactModel;
-    protected $clientModel;
+    protected Contact $contactModel;
+    protected Client $clientModel;
 
     public function __construct()
     {

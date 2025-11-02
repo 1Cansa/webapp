@@ -18,11 +18,22 @@ A simple PHP MVC application to manage clients and their linked contacts.
 - MySQL or MariaDB
 - Apache with mod_rewrite enabled
 
-## Installation
-- composer install
-- composer dump-autoload
-- php -S localhost:8080 -t public # start web server 
-
 ## Clone the project
-   - git clone https://github.com/1Cansa/webapp.git
-   - cd webapp
+```bash
+git clone https://github.com/1Cansa/webapp.git
+cd webapp
+```
+
+## Installation
+- install dependencies
+```bash
+composer install
+```
+- generate the composer autoload file
+```bash
+composer dump-autoload
+```
+- start web server
+```bash
+php -S localhost:8080 -t public  
+```

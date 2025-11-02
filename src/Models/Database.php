@@ -9,8 +9,8 @@ use PDOException;
  */
 class Database
 {
-    private static $instance = null;
-    private $connection;
+    private static ?Database $instance = null;
+    private PDO $connection;
 
     /**
      * Private constructor to prevent direct instantiation.
@@ -28,7 +28,6 @@ class Database
         try {
             $this->connection = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            // You can log this error instead of showing it in production
             die("Database connection error: " . $e->getMessage());
         }
     }
@@ -38,7 +37,7 @@ class Database
      *
      * @return Database
      */
-    public static function getInstance()
+    public static function getInstance(): ?Database
     {
         if (self::$instance === null) {
             self::$instance = new Database();
@@ -52,7 +51,7 @@ class Database
      *
      * @return PDO
      */
-    public function getConnection()
+    public function getConnection(): PDO
     {
         return $this->connection;
     }

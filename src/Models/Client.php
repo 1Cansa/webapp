@@ -13,7 +13,7 @@ use PDO;
  */
 class Client extends BaseModel
 {
-    protected $table = 'clients';
+    protected string $table = 'clients';
 
     public function __construct()
     {
@@ -59,7 +59,6 @@ class Client extends BaseModel
         $name = preg_replace('/[^A-Z\s]/', '', $name);
 
         $words = preg_split('/\s+/', $name);
-        $baseCode = '';
 
         if (count($words) === 1) {
             $word = $words[0];
@@ -96,7 +95,7 @@ class Client extends BaseModel
      * @param array $data Client data including 'name'
      * @return bool True on success, false otherwise
      */
-    public function create(array $data)
+    public function create(array $data): bool
     {
         $data['client_code'] = $this->generateClientCode($data['name']);
 
@@ -115,7 +114,7 @@ class Client extends BaseModel
      * @param array $data Client data (only 'name' is used)
      * @return bool
      */
-    public function update($id, array $data)
+    public function update(int $id, array $data): bool
     {
         $stmt = $this->db->prepare("UPDATE {$this->table} SET name = :name WHERE id = :id");
         return $stmt->execute([
@@ -130,7 +129,7 @@ class Client extends BaseModel
      * @param int $id Client ID
      * @return bool
      */
-    public function delete($id)
+    public function delete(int $id): bool
     {
         // First, remove all associations with contacts
         $stmt = $this->db->prepare("DELETE FROM client_contacts WHERE client_id = :client_id");
@@ -147,7 +146,7 @@ class Client extends BaseModel
      * @param string $code
      * @return array|false
      */
-    public function findByCode($code)
+    public function findByCode(string $code)
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE client_code = :code");
         $stmt->execute(['code' => $code]);
@@ -160,7 +159,7 @@ class Client extends BaseModel
      * @param int $clientId
      * @return array
      */
-    public function getLinkedContacts($clientId)
+    public function getLinkedContacts(int $clientId): array
     {
         $stmt = $this->db->prepare("
             SELECT c.id, c.first_name, c.last_name, c.email
@@ -179,7 +178,7 @@ class Client extends BaseModel
      * @param int $clientId
      * @return int
      */
-    public function countLinkedContacts($clientId)
+    public function countLinkedContacts(int $clientId): int
     {
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM client_contacts WHERE client_id = :client_id");
         $stmt->execute(['client_id' => $clientId]);
@@ -193,7 +192,7 @@ class Client extends BaseModel
      * @param int $contactId
      * @return bool
      */
-    public function linkContact($clientId, $contactId)
+    public function linkContact(int $clientId, int $contactId): bool
     {
         // Prevent duplicate links
         $checkStmt = $this->db->prepare("SELECT COUNT(*) FROM client_contacts WHERE client_id = :client_id AND contact_id = :contact_id");
@@ -213,7 +212,7 @@ class Client extends BaseModel
      * @param int $contactId
      * @return bool
      */
-    public function unlinkContact($clientId, $contactId)
+    public function unlinkContact(int $clientId, int $contactId): bool
     {
         $stmt = $this->db->prepare("DELETE FROM client_contacts WHERE client_id = :client_id AND contact_id = :contact_id");
         return $stmt->execute(['client_id' => $clientId, 'contact_id' => $contactId]);

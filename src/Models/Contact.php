@@ -7,7 +7,7 @@ use PDO;
 
 class Contact extends BaseModel
 {
-    protected $table = 'contacts';
+    protected string $table = 'contacts';
 
     public function __construct()
     {
@@ -20,7 +20,7 @@ class Contact extends BaseModel
      * @param array $data Contact data (first_name, last_name, email)
      * @return bool True on success, false on failure
      */
-    public function create(array $data)
+    public function create(array $data): bool
     {
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (first_name, last_name, email) VALUES (:first_name, :last_name, :email)");
         return $stmt->execute([
@@ -37,7 +37,7 @@ class Contact extends BaseModel
      * @param array $data Contact data to update
      * @return bool True on success, false on failure
      */
-    public function update($id, array $data)
+    public function update(int $id, array $data): bool
     {
         $stmt = $this->db->prepare("UPDATE {$this->table} SET first_name = :first_name, last_name = :last_name, email = :email WHERE id = :id");
         return $stmt->execute([
@@ -54,7 +54,7 @@ class Contact extends BaseModel
      * @param int $id Contact ID
      * @return bool True on success, false on failure
      */
-    public function delete($id)
+    public function delete(int $id): bool
     {
         // First remove links in client_contacts table
         $stmt = $this->db->prepare("DELETE FROM client_contacts WHERE contact_id = :contact_id");
@@ -71,7 +71,7 @@ class Contact extends BaseModel
      * @param int $contactId Contact ID
      * @return array List of linked clients
      */
-    public function getLinkedClients($contactId)
+    public function getLinkedClients(int $contactId): array
     {
         $stmt = $this->db->prepare("
             SELECT cl.id, cl.name, cl.client_code
@@ -90,12 +90,13 @@ class Contact extends BaseModel
      * @param int $contactId Contact ID
      * @return int Number of linked clients
      */
-    public function countLinkedClients($contactId)
+    public function countLinkedClients(int $contactId): int
     {
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM client_contacts WHERE contact_id = :contact_id");
         $stmt->execute(['contact_id' => $contactId]);
         return (int) $stmt->fetchColumn();
     }
+
 
     /**
      * Link a client to a contact.
@@ -104,7 +105,7 @@ class Contact extends BaseModel
      * @param int $clientId Client ID
      * @return bool True on success, false if already linked or failure
      */
-    public function linkClient($contactId, $clientId)
+    public function linkClient(int $contactId, int $clientId): bool
     {
         // Check if link already exists to avoid duplicates
         $checkStmt = $this->db->prepare("SELECT COUNT(*) FROM client_contacts WHERE contact_id = :contact_id AND client_id = :client_id");
@@ -124,7 +125,7 @@ class Contact extends BaseModel
      * @param int $clientId Client ID
      * @return bool True on success, false on failure
      */
-    public function unlinkClient($contactId, $clientId)
+    public function unlinkClient(int $contactId, int $clientId): bool
     {
         $stmt = $this->db->prepare("DELETE FROM client_contacts WHERE contact_id = :contact_id AND client_id = :client_id");
         return $stmt->execute(['contact_id' => $contactId, 'client_id' => $clientId]);

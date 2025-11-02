@@ -5,7 +5,6 @@ require ROOT . '/config/database.php';
 require ROOT . '/vendor/autoload.php';
 
 use App\Core\Router;
-use App\Core\Route;
 use App\Controllers\HomeController;
 use App\Controllers\ClientController;
 use App\Controllers\ContactController;

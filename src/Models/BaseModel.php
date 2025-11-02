@@ -14,12 +14,12 @@ abstract class BaseModel
     /**
      * @var string The name of the database table.
      */
-    protected $table;
+    protected string $table;
 
     /**
      * @var PDO The PDO database connection instance.
      */
-    protected $db;
+    protected PDO $db;
 
     /**
      * BaseModel constructor.

@@ -9,8 +9,8 @@ use App\Core\Router;
 class ClientController
 {
     public Router $router;
-    protected $clientModel;
-    protected $contactModel;
+    protected Client $clientModel;
+    protected Contact $contactModel;
 
     public function __construct()
     {
